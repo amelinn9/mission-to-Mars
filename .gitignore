@@ -1,7 +1,6 @@
 # ignore these files
 practice.ipynb
 chromedriver.exe
-index.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
