@@ -1,6 +1,7 @@
 # ignore these files
 practice.ipynb
 chromedriver.exe
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
