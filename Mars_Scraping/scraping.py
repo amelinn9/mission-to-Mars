@@ -9,7 +9,7 @@ import datetime as dt
 def scrape_all():
     # initialise headliss driver for deployment
     #executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser("chrome", executable_path="chromedriver", headless=True)
+    browser = Browser("chrome", executable_path="chromedriver", headless=False)
 
     news_title, news_paragraph = mars_news(browser)
 
@@ -19,7 +19,8 @@ def scrape_all():
       "news_paragraph": news_paragraph,
       "featured_image": featured_image(browser),
       "facts": mars_facts(),
-      "last_modified": dt.datetime.now()
+      "last_modified": dt.datetime.now(),
+      "hemispheres": hemispheres(browser)
     }
 
     # Stop webdriver and return data
@@ -93,10 +94,11 @@ def featured_image(browser):
 
     return img_url
 
+
 ############################################################################
 # Scrape Mars Facts
 ############################################################################
-# create a function to the entire table
+# create a function to scrape the entire table
 def mars_facts():
     # add a try/except block to handle errors
     try:
@@ -107,8 +109,8 @@ def mars_facts():
         return None
 
     # assign columns and set index of df
-    df.columns=['description', 'value']
-    df.set_index('description', inplace=True)
+    df.columns=['Description', 'Mars']
+    df.set_index('Description', inplace=True)
 
     # convert the dataframe back to html-ready code
     return df.to_html(classes="table table-striped")
@@ -116,3 +118,77 @@ def mars_facts():
 if __name__ == "__main__":
     # if running as script, print scraped data
     print(scrape_all())
+
+
+############################################################################
+# Scrape Hemisphere Data
+############################################################################
+# create a function to scrape hemisphere data
+def hemispheres(browser):
+    # visit URL
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+
+    # create a list to hold the images and titles
+    hemisphere_image_urls = []
+    # set up html parser
+    html = browser.html
+
+    # add a try/except block to handle errors
+    # CERBERUS
+    cerb_page = browser.links.find_by_partial_text('Cerberus')
+    cerb_page.click()
+    html = browser.html
+    cerb_soup = soup(html, 'html.parser')
+    cerb_url = cerb_soup.select_one("div.downloads a").get("href")
+    cerb_title = cerb_soup.select_one("h2", class_="title").get_text()
+
+    cerberus_dict = {"img_url": cerb_url,
+                    "title": cerb_title}
+
+
+    # SCHIAPARELLI
+    browser.visit(url)
+    schia_page = browser.links.find_by_partial_text('Schiaparelli')
+    schia_page.click()
+    html = browser.html
+    schia_soup = soup(html, 'html.parser')
+    schia_url = schia_soup.select_one("div.downloads a").get("href")
+    schia_title = schia_soup.select_one("h2", class_="title").get_text()
+
+    schiaparelli_dict = {"img_url": schia_url,
+                        "title": schia_title}
+
+
+    # SYRTIS MAJOR
+    browser.visit(url)
+    syrt_page = browser.links.find_by_partial_text('Syrtis')
+    syrt_page.click()
+    html = browser.html
+    syrt_soup = soup(html, 'html.parser')
+    syrt_url = syrt_soup.select_one("div.downloads a").get("href")
+    syrt_title = syrt_soup.select_one("h2", class_="title").get_text()
+
+    syrtis_dict = {"img_url": syrt_url,
+                "title": syrt_title}
+
+
+    # VALLES MARINERIS
+    browser.visit(url)
+    val_page = browser.links.find_by_partial_text('Valles')
+    val_page.click()
+    html = browser.html
+    val_soup = soup(html, 'html.parser')
+    val_url = val_soup.select_one("div.downloads a").get("href")
+    val_title = val_soup.select_one("h2", class_="title").get_text()
+
+    valles_dict = {"img_url": val_url,
+                "title": val_title}
+
+    # append dicts to the list
+    hemisphere_image_urls.append(cerberus_dict)
+    hemisphere_image_urls.append(schiaparelli_dict)
+    hemisphere_image_urls.append(syrtis_dict)
+    hemisphere_image_urls.append(valles_dict)
+
+    return hemisphere_image_urls
